@@ -33,13 +33,17 @@ def load_documents():
 
 
 def split_documents(documents: list[Document]):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=80,
-        is_separator_regex=True,
-        separators=[";"]
-    )
-    return text_splitter.split_documents(documents)
+    chunks = []
+    for document in documents:
+        # Dividindo o texto do documento com base no delimitador ;
+        conversations = document.page_content.split(';')
+
+        # Iterando por cada conversa, removendo espaços extras e adicionando como novo chunk
+        for conversation in conversations:
+            conversation = conversation.strip()
+            if conversation:  # Apenas adicionar se não estiver vazio
+                chunks.append(Document(page_content=conversation, metadata=document.metadata))
+    return chunks
 
 
 def add_to_chroma(chunks: list[Document]):
