@@ -33,17 +33,13 @@ def load_documents():
 
 
 def split_documents(documents: list[Document]):
-    chunks = []
-    for document in documents:
-        # Dividindo o texto do documento com base no delimitador ;
-        conversations = document.page_content.split(';')
-
-        # Iterando por cada conversa, removendo espaços extras e adicionando como novo chunk
-        for conversation in conversations:
-            conversation = conversation.strip()
-            if conversation:  # Apenas adicionar se não estiver vazio
-                chunks.append(Document(page_content=conversation, metadata=document.metadata))
-    return chunks
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=800,
+        chunk_overlap=80,
+        length_function=len,
+        is_separator_regex=False
+    )
+    return text_splitter.split_documents(documents)
 
 
 def add_to_chroma(chunks: list[Document]):
@@ -53,9 +49,9 @@ def add_to_chroma(chunks: list[Document]):
 
     chunks_with_ids = calculate_chunk_ids(chunks)
 
-    existing_items = db.get(include=[])  # IDs are always included by default
+    existing_items = db.get(include=[])
     existing_ids = set(existing_items["ids"])
-    print(f"Number of existing documents in DB: {len(existing_ids)}")
+    print(f"Números de chunks existentes no Banco: {len(existing_ids)}")
 
     new_chunks = []
     for chunk in chunks_with_ids:
@@ -63,12 +59,12 @@ def add_to_chroma(chunks: list[Document]):
             new_chunks.append(chunk)
 
     if len(new_chunks):
-        print(f"👉 Adding new documents: {len(new_chunks)}")
+        print(f"👉 Adicionando novas chunks: {len(new_chunks)}")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
         db.persist()
     else:
-        print("✅ No new documents to add")
+        print("✅ Sem novas chunks para adicionar.")
 
 
 def calculate_chunk_ids(chunks):

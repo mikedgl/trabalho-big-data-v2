@@ -23,7 +23,7 @@ app = Flask(__name__)
 def query_rag():
     # Obtenha a pergunta do JSON
     data = request.json
-    query_text = data.get('query_text')
+    query_text = data.get('query')
 
     # Prepare o DB
     embedding_function = get_embedding_function()
